@@ -33,11 +33,13 @@ end
 
 config = YAML.load_file('arxiv_config.yml')
 
+@@go_ahead = false
 if config[:go_ahead]
   if config[:database_for_javascript]
     ArxivCategory.set_database_for_javascript(config[:database_for_javascript])
   end
   ArxivTwitter.set_go_ahead(true)
+  @@go_ahead = false
 end
 
 @tokens = {}
@@ -65,13 +67,14 @@ targets.each do |target|
     next
   end
 
-  announcement = Time.now.strftime("*** [%d %b] New submissions for #{target} ***")
-  announcement += " [sorry for hep-ex users; this is a test run. today's articles again. ]"
+  first_announcement = Time.now.strftime("*** [%d %b] New submissions for #{target} ***")
+# first_announcement += " [sorry for hep-ex users; this is a test run. today's articles again. ]"
 
-  ArxivTwitter.send_tweet(token, announcement)
-  ac.send_tweets
+  ac.send_tweets(first_announcement)
 
-  sleep 600 # if some crucial error occurs, misho will stop executing the following categories.
+  if @@go_ahead
+    sleep 600 # if some crucial error occurs, misho will stop executing the following categories.
+  end
 end
 
 `wget http://www.misho-web.com/phys/arxiv_tw/generate.cgi`
