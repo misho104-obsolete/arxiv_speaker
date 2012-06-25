@@ -1,24 +1,34 @@
 --- 
-:hepph:
-  :ck: XXXXX 
-  :cs: XXXXX
-  :at: XXXXX
-  :as: XXXXX
 
-:hepth:
-  :ck: XXXXX 
-  :cs: XXXXX
-  :at: XXXXX
-  :as: XXXXX
+#### Path to the database file for the BANG script.
+#### If unspecified, no database file is generated.
+# :database_for_javascript: /vol1/www/html/arxiv/tw.dat
 
-:hepex:
-  :ck: XXXXX 
-  :cs: XXXXX
-  :at: XXXXX
-  :as: XXXXX
+#### The Safety Catch. Set true, and the tweets are sent.
+# :go_ahead: true
 
-:heplat:
-  :ck: XXXXX 
-  :cs: XXXXX
-  :at: XXXXX
-  :as: XXXXX
+#### Oauth tokens.
+:tokens:
+  :hepph:
+    :ck: XXX
+    :cs: XXX
+    :at: XXX
+    :as: XXX
+
+  :hepth:
+    :ck: XXX
+    :cs: XXX
+    :at: XXX
+    :as: XXX
+
+  :hepex:
+    :ck: XXX
+    :cs: XXX
+    :at: XXX
+    :as: XXX
+
+  :heplat:
+    :ck: XXX
+    :cs: XXX
+    :at: XXX
+    :as: XXX

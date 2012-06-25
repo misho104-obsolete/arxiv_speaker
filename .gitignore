@@ -12,6 +12,9 @@ test/tmp
 test/version_tmp
 tmp
 
+arxiv_config.yml
+arxiv_latest.yml
+
 # YARD artifacts
 .yardoc
 _yardoc
