@@ -77,7 +77,7 @@ class ArxivCategory
     end
   end
 
-  def send_tweets
+  def send_tweets(first_announcement = nil)
     name_sym = @name.gsub(/-/, "").to_sym
 
     begin
@@ -90,9 +90,15 @@ class ArxivCategory
 
     begin
       data = ""
+      first_tweet = true
 
       @articles.each do |a|
         next if a.number <= already_tweeted_id
+
+        if first_tweet and first_announcement
+          ArxivTwitter.send_tweet(@oauth_token, first_announcement)
+        end
+        first_tweet = false
 
         a.send_tweet(@oauth_token)
         already_tweeted_id = a.number
