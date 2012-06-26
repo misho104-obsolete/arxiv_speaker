@@ -88,6 +88,7 @@ class ArxivCategory
     latest ||= {}
     already_tweeted_id ||= ""
 
+    tweeted_articles = 0
     begin
       data = ""
       first_tweet = true
@@ -103,6 +104,7 @@ class ArxivCategory
         a.send_tweet(@oauth_token)
         already_tweeted_id = a.number
         data += a.to_json
+        tweeted_articles += 1
       end
     rescue TweetingException => err
       raise err
@@ -120,6 +122,7 @@ class ArxivCategory
     open('arxiv_latest.yml', "w") do |file|
       file.write(latest.to_yaml)
     end
+    return tweeted_articles
   end
 
   def self.new_from_rss(name, url, oauth_token)

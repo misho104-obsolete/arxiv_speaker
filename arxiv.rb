@@ -9,11 +9,42 @@ require 'oauth'
 require 'rss'
 require 'yaml'
 
+MAX_TRIAL      = 6
+LONG_SLEEP_SEC = 1200 # 20min x 6trial = 2hours; valid both for summer and winter
+
 def send_mail(text, target = "xxx-xx")
   print "mail : #{text} / #{target}\n"; return #MOCK
 
   title = "[arXivSpeaker] #{target} : `date '+%Y/%m/%d %H:%M'`"
   `echo #{text} | mail -s "#{title}" root`
+end
+
+def get_token(target)
+  @tokens[target.gsub(/-/, "").to_sym]
+end
+
+def execute(target)
+  token = get_token(target)
+  unless token
+    send_mail("oauth_token for #{target} not found.")
+    return nil
+  end
+
+  begin
+    ac = ArxivCategory.new_from_html(target, "http://arxiv.org/list/#{target}/new", token)
+  rescue ArxivReadingException, str = nil
+    p str
+    message =  "arXiv:#{target} cannot be obtained."
+    message += " Error: #{str}" if str
+    send_mail(message)
+    return nil
+  end
+
+  first_announcement = Time.now.strftime("*** [%d %b] New submissions for #{target} ***")
+# first_announcement += " [sorry for hep-ex users; this is a test run. today's articles again. ]"
+
+  articles = ac.send_tweets(first_announcement)
+  return articles
 end
 
 # ==============================================================================
@@ -52,29 +83,46 @@ end
 
 # - - - - - - - -
 
-targets.each do |target|
-  token = @tokens[target.gsub(/-/, "").to_sym]
-  unless token
-    send_mail("oauth_token for #{target} not found.")
-    next
+trial = {}
+targets.push(LONG_SLEEP_SEC) # Fixnum means sleep (in sec.)
+
+while targets.size > 0
+  target = targets.shift
+
+  if target.class == Fixnum # long sleep!
+    if targets.size > 0
+      sleep target
+      targets.push(target)
+    else
+      # exit from this while loop.
+    end
+  else
+    tweeted = execute(target)
+
+    if tweeted.nil? or tweeted == 0 # nil=>ERROR, 0=>NO ARTICLE
+      sym = target.gsub(/-/, "").to_sym
+      trial[sym] = (trial[sym] || 0) + 1
+
+      if trial[sym] < MAX_TRIAL
+        targets.push(target) # retry after a long sleep
+      else
+        message =  "arXiv:#{target} cannot be obtained"
+        if tweeted.nil?
+          message += " with unexpected errors."
+        else
+          message += ". No Article found."
+        end
+        announcement = Time.now.strftime("*** [%d %b] #{message} ***")
+
+        ArxivTwitter.send_tweet(get_token(target), announcement)
+        send_mail(message)
+      end
+    else
+      # No problem. Finish.
+      sleep 60 if @@go_ahead # if some crucial error occurs, misho will stop executing the following categories.
+    end
   end
-
-  begin
-    ac = ArxivCategory.new_from_html(target, "http://arxiv.org/list/#{target}/new", token)
-  rescue ArxivReadingException, str = nil
-    p str
-    send_mail("arXiv:#{target} cannot be obtained.")
-    next
-  end
-
-  first_announcement = Time.now.strftime("*** [%d %b] New submissions for #{target} ***")
-# first_announcement += " [sorry for hep-ex users; this is a test run. today's articles again. ]"
-
-  ac.send_tweets(first_announcement)
-
-  sleep 60 if @@go_ahead # if some crucial error occurs, misho will stop executing the following categories.
 end
 
 `wget http://www.misho-web.com/phys/arxiv_tw/generate.cgi` # hack for bang.js
-
 
