@@ -39,7 +39,7 @@ if config[:go_ahead]
     ArxivCategory.set_database_for_javascript(config[:database_for_javascript])
   end
   ArxivTwitter.set_go_ahead(true)
-  @@go_ahead = false
+  @@go_ahead = true
 end
 
 @tokens = {}
@@ -72,10 +72,9 @@ targets.each do |target|
 
   ac.send_tweets(first_announcement)
 
-  if @@go_ahead
-    sleep 600 # if some crucial error occurs, misho will stop executing the following categories.
-  end
+  sleep 60 if @@go_ahead # if some crucial error occurs, misho will stop executing the following categories.
 end
 
-`wget http://www.misho-web.com/phys/arxiv_tw/generate.cgi`
+`wget http://www.misho-web.com/phys/arxiv_tw/generate.cgi` # hack for bang.js
+
 

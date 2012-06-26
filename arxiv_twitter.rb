@@ -28,7 +28,7 @@ class ArxivTwitter
     begin
       count += 1
       if @@go_ahead
-        result = token.post(TWITTER_UPDATE_API, 'status'=> "X:" + text)
+        result = token.post(TWITTER_UPDATE_API, 'status'=> text)
         sleep 4 # be gentle...
       else
         print "TWEETING: #{text}\n";
