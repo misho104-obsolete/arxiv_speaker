@@ -13,7 +13,7 @@ MAX_TRIAL      = 6
 LONG_SLEEP_SEC = 1200 # 20min x 6trial = 2hours; valid both for summer and winter
 
 def send_mail(text, target = "xxx-xx")
-  print "mail : #{text} / #{target}\n"; return #MOCK
+  p "#{target} : #{text}"
 
   title = "[arXivSpeaker] #{target} : `date '+%Y/%m/%d %H:%M'`"
   `echo #{text} | mail -s "#{title}" root`
@@ -26,7 +26,7 @@ end
 def execute(target)
   token = get_token(target)
   unless token
-    send_mail("oauth_token for #{target} not found.")
+    send_mail("oauth_token for #{target} not found.", target)
     return nil
   end
 
@@ -36,7 +36,7 @@ def execute(target)
     p str
     message =  "arXiv:#{target} cannot be obtained."
     message += " Error: #{str}" if str
-    send_mail(message)
+    send_mail(message, target)
     return nil
   end
 
@@ -115,7 +115,7 @@ while targets.size > 0
         announcement = Time.now.strftime("*** [%d %b] #{message} ***")
 
         ArxivTwitter.send_tweet(get_token(target), announcement)
-        send_mail(message)
+        send_mail(message, target)
       end
     else
       # No problem. Finish.
