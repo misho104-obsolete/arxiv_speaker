@@ -67,8 +67,10 @@ class ArxivCategory
       number = number_match[1]
 
       begin
-        title.gsub!(/^Title:\s*/i,"").gsub!(/\s+/, " ").strip!
-        author.gsub!(/^Authors?:\s*/i,"").gsub!(/\s+/, " ").strip!
+        title.gsub!(/^Title:\s*/i,"").gsub!(/\s+/, " ")
+        title.strip!
+        author.gsub!(/^Authors?:\s*/i,"").gsub!(/\s+/, " ")
+        author.strip!
       rescue
         raise ArxivHtmlReadingException
       end
