@@ -111,6 +111,7 @@ class ArxivCategory
     ensure
       if @@database_for_javascript
         open(@@database_for_javascript, 'a'){ |f| f << data }
+        `wget http://www.misho-web.com/phys/arxiv_tw/generate.cgi` # hack for bang.js
       else
         print "\n--- FOR DATABASE ---\n"
         print data

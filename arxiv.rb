@@ -124,5 +124,3 @@ while targets.size > 0
   end
 end
 
-`wget http://www.misho-web.com/phys/arxiv_tw/generate.cgi` # hack for bang.js
-
