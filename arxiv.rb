@@ -82,6 +82,14 @@ end
 
 
 # - - - - - - - -
+if false  # for announcement
+  targets.each do |target|
+    announcement = "Sorry for the late announcement for 11 Oct. updates. Now the problem is fixed."
+    ArxivTwitter.send_tweet(get_token(target), announcement)
+  end
+  exit 0
+end 
+
 
 trial = {}
 targets.push(LONG_SLEEP_SEC) # Fixnum means sleep (in sec.)
