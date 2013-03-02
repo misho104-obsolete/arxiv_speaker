@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'rubygems'
 require 'htmlentities'
+require 'json'
 require_relative 'arxiv_twitter'
 
 class ArxivArticle
@@ -8,14 +9,14 @@ class ArxivArticle
   @@author_min_length = 30
   @@html_encoder      = HTMLEntities.new
 
-  attr_accessor :title, :author, :category, :number, :tweet
+  attr_accessor :title, :author, :category, :number, :tweet_id
 
   def initialize(title = "", author = "", category = "", number = "")
     @title    = @@html_encoder.decode(title.gsub(/\.\s*$/, ""))
     @author   = @@html_encoder.decode(author)
     @category = category
     @number   = number
-    @tweet    = nil
+    @tweet_id = nil
   end
 
 protected
@@ -72,19 +73,16 @@ public
   end
 
   def to_json
-    return "\"#{@number}\":\"#{@tweet}\",\n"
+    return "\"#{@number}\":\"#{@tweet_id}\",\n"
   end
 
   def send_tweet(access_token)
     result = ArxivTwitter.send_tweet(access_token, self)
-
-    @tweet = nil
     begin
-      if m = Regexp.new('<id>(\d+)</id>').match(result.read_body)
-        @tweet = m[1]
-      end
+      @tweet_id = JSON.parse(result.read_body)["id"]
     rescue
+      @tweet_id = nil
     end
-    return @tweet
+    return @tweet_id
   end
 end
