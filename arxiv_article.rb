@@ -2,7 +2,6 @@
 require 'rubygems'
 require 'htmlentities'
 require 'json'
-require_relative 'arxiv_twitter'
 
 class ArxivArticle
   @@url_length        = 24
