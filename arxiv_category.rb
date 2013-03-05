@@ -7,15 +7,17 @@ class ArxivReadingException < Exception; end
 class ArxivRssReadingException  < ArxivReadingException; end
 class ArxivHtmlReadingException < ArxivReadingException; end
 
+LATEST_ID_FILE = 'arxiv_latest.yml'
 
 class ArxivCategory
   attr_accessor :name, :articles
 
-  @@database_for_javascript = nil
-  def self.set_database_for_javascript(file)
-    @@database_for_javascript = file
-  end
+  @@database_file = nil
+  @@latest_ids = nil
 
+  def self.set_database_file(file)
+    @@database_file = file
+  end
 
   def initialize(name, articles, oauth_token)
     @name        = name
@@ -23,6 +25,29 @@ class ArxivCategory
     @oauth_token = oauth_token
   end
 
+private
+  def latest_id(update = nil)
+    name_downcase = @name.downcase
+
+    if @@latest_ids.nil?
+      begin
+        @@latest_ids = YAML.load_file(LATEST_ID_FILE)
+      rescue
+        @@latest_ids = {}
+      end
+    end
+
+    if update
+      @@latest_ids[name_downcase] = update
+      open(LATEST_ID_FILE, "w") do |file|
+        file.write(@@latest_ids.to_yaml)
+      end
+    end
+
+    @@latest_ids[name_downcase] || ""
+  end
+
+public
   def read_from_rss(url)
     rss = RSS::Parser.parse(url)
     if rss.nil? or rss.items.length == 0 then
@@ -80,20 +105,12 @@ class ArxivCategory
   end
 
   def send_tweets(first_announcement = nil)
-    name_sym = @name.gsub(/-/, "").to_sym
+    already_tweeted_id = latest_id
+    tweeted_articles   = 0
 
     begin
-      latest = YAML.load_file('arxiv_latest.yml')
-      already_tweeted_id = latest[name_sym]
-    rescue
-    end
-    latest ||= {}
-    already_tweeted_id ||= ""
-
-    tweeted_articles = 0
-    begin
-      data = ""
-      first_tweet = true
+      results_json = []
+      first_tweet  = true
 
       @articles.each do |a|
         next if a.number <= already_tweeted_id
@@ -105,26 +122,18 @@ class ArxivCategory
 
         a.send_tweet(@oauth_token)
         already_tweeted_id = a.number
-        data += a.to_json
+        results_json.push(a.to_json)
         tweeted_articles += 1
       end
     rescue TweetingException => err
       raise err
     ensure
-      if @@database_for_javascript
-        open(@@database_for_javascript, 'a'){ |f| f << data }
-        `wget http://www.misho-web.com/phys/arxiv_tw/generate.cgi` # hack for bang.js
-      else
-        print "\n--- FOR DATABASE ---\n"
-        print data
-        print "--------------------\n\n"
-      end
+      data = results_json.join("")
+      print "\n------ RESULT : #{@name} ------\n#{data}\n"
+      open(@@database_file, 'a'){ |f| f << data } if @@database_file
     end
 
-    latest[name_sym] = already_tweeted_id
-    open('arxiv_latest.yml', "w") do |file|
-      file.write(latest.to_yaml)
-    end
+    latest_id(already_tweeted_id) # update
     return tweeted_articles
   end
 
@@ -140,6 +149,3 @@ class ArxivCategory
     a
   end
 end
-
-
-

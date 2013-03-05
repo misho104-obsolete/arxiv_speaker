@@ -9,126 +9,155 @@ require 'oauth'
 require 'rss'
 require 'yaml'
 
-MAX_TRIAL      = 6
-LONG_SLEEP_SEC = 1200 # 20min x 6trial = 2hours; valid both for summer and winter
+#
+# Usage: ./arxiv.rb NAME    # => execute the target whose :name is NAME.
+#        ./arxiv.rb         # => execute all the targets in the config file.
+#
 
-def send_mail(text, target = "xxx-xx")
-  p "#{target} : #{text}"
+#
+# After an execution of each category,
+#   the category is removed IF the articles are found and tweeted OR trial reaches to MAX_TRIAL.
+# When the process reaches to the tail of the category list, LONG SLEEP takes place.
+#
+# arXiv is updated at 00:00 UTC in summer and 01:00 UTC.
+# You can cover both schedules with running this script at 00:00 UTC (with MAX_TRIAL = 6 and LONG_SLEEP_SEC = 1200).
+#
+#    For example in WINTER time, first execution (at 00:00) cannot found any articles since arXiv is not updated.
+#    Thus all categories are executed again around 00:20 and 00:40, ...,
+#      and probably the 5th execution (around 01:20) found the (updated) articles.
+#    If 6th trial (around 01:40) fails, this script concludes no new articles are submitted and tweets so.
+#
+MAX_TRIAL       = 6
+LONG_SLEEP_SEC  = 1200 # takes place between trials; 20min x 6trial = 2hours (see above!)
+SHORT_SLEEP_SEC = 60   # takes place between the executions of each category.
 
-  title = "[arXivSpeaker] #{target} : `date '+%Y/%m/%d %H:%M'`"
-  `echo #{text} | mail -s "#{title}" root`
+@admin_email = nil
+@go_ahead    = false
+
+
+
+def send_mail(text, category_name = "xxx-xx")
+  print "[SENDING EMAIL] #{category_name} : #{text}\n"
+
+  if @go_ahead and @admin_email
+    title = "[arXivSpeaker] #{category_name} : `date '+%Y/%m/%d %H:%M'`"
+
+    # THIS SCRIPT USES "MAIL" COMMAND ON YOUR SERVER!
+    `echo #{text} | mail -s "#{title}" '#{@admin_email}'`
+  end
 end
 
-def get_token(target)
-  @tokens[target.gsub(/-/, "").to_sym]
+
+def do_sleep(duration)
+  if @go_ahead
+    sleep duration
+  else
+    print "[INFO] 'sleep' for #{duration} sec.\n"
+  end
 end
+
 
 def execute(target)
-  token = get_token(target)
-  unless token
-    send_mail("oauth_token for #{target} not found.", target)
+  name  = target[:name]
+  url   = target[:url] || "http://arxiv.org/list/#{name}/new"
+  token = target[:token]
+
+  if @go_ahead and not token
+    send_mail("oauth_token for #{name} not found.", name)
     return nil
   end
 
   begin
-    ac = ArxivCategory.new_from_html(target, "http://arxiv.org/list/#{target}/new", token)
+    ac = ArxivCategory.new_from_html(name, url, token)
   rescue ArxivReadingException, str = nil
-    p str
-    message =  "arXiv:#{target} cannot be obtained."
+    print "[ERROR] ArxivReadingException! #{str}\n"
+    message =  "arXiv:#{name} cannot be obtained."
     message += " Error: #{str}" if str
-    send_mail(message, target)
+    send_mail(message, name)
     return nil
   end
 
-  first_announcement = Time.now.strftime("*** [%d %b] New submissions for #{target} ***")
+  first_announcement = Time.now.strftime("*** [%d %b] New submissions for #{name} ***")
 # first_announcement += " [sorry for hep-ex users; this is a test run. today's articles again. ]"
 
-  articles = ac.send_tweets(first_announcement)
-  return articles
+  ac.send_tweets(first_announcement) # returns the number of tweeted articles.
 end
 
-# ==============================================================================
 
-targets = [ 'hep-ph', 'hep-th', 'hep-ex', 'hep-lat' ]
-
-if ARGV.length > 0
-  if targets.member? ARGV[0]
-    targets = [ ARGV[0] ]
-  else
-    p "#{ARGV[0]} is not a valid target."
-    exit 1
-  end
-end
-
-# - - - - - - - -
+# ============================================================================== #
+#                                THE MAIN ROUTINE                                #
+# ============================================================================== #
 
 config = YAML.load_file('arxiv_config.yml')
 
-@@go_ahead = false
-if config[:go_ahead]
-  if config[:database_for_javascript]
-    ArxivCategory.set_database_for_javascript(config[:database_for_javascript])
+if ARGV.length > 0
+  targets = config[:targets].select{ |t| t[:name] == ARGV[0] }
+else
+  targets = config[:targets]
+end
+if targets.nil? or targets.empty?
+  print "[ERROR] no target found."
+  exit 1
+end
+
+@admin_email = config[:email]    || nil
+@go_ahead    = config[:go_ahead] || false
+ArxivCategory.set_database_file(config[:database_file]) if config[:database_file]
+ArxivTwitter.set_go_ahead(@go_ahead)
+
+
+targets.each_with_index do |t, ind| # prepare tokens
+  if @go_ahead
+    token = OAuth::AccessToken.new(
+              OAuth::Consumer.new(t[:consumer_key], t[:consumer_secret], :site=>"http://api.twitter.com"),
+              t[:access_token], t[:access_secret])
+    unless token
+      print "[ERROR] invalid token for category #{t[:name]}."
+      exit 1
+    end
+    targets.at(ind)[:token] = token
   end
-  ArxivTwitter.set_go_ahead(true)
-  @@go_ahead = true
 end
 
-@tokens = {}
-config[:tokens].each do |k,v|
-  @tokens[k] = OAuth::AccessToken.new(
-                 OAuth::Consumer.new(v[:ck], v[:cs], :site=>"http://api.twitter.com"),
-                 v[:at], v[:as])
-end
-
-
-# - - - - - - - -
-if false  # for announcement
+# ---------------------
+# code for announcement
+#
+if false
   targets.each do |target|
     announcement = "Sorry for the late announcement for 11 Oct. updates. Now the problem is fixed."
-    ArxivTwitter.send_tweet(get_token(target), announcement)
+    ArxivTwitter.send_tweet(target[:token], announcement)
   end
   exit 0
-end 
+end
+# ---------------------
 
-
-trial = {}
-targets.push(LONG_SLEEP_SEC) # Fixnum means sleep (in sec.)
-
-while targets.size > 0
-  target = targets.shift
-
-  if target.class == Fixnum # long sleep!
-    if targets.size > 0
-      sleep target
-      targets.push(target)
-    else
-      # exit from this while loop.
-    end
-  else
+while true
+  to_retry = []
+  while targets.size > 0
+    target = targets.shift
     tweeted = execute(target)
 
+    # error handling
     if tweeted.nil? or tweeted == 0 # nil=>ERROR, 0=>NO ARTICLE
-      sym = target.gsub(/-/, "").to_sym
-      trial[sym] = (trial[sym] || 0) + 1
+      target[:tried] = (target[:tried] || 0) + 1
 
-      if trial[sym] < MAX_TRIAL
-        targets.push(target) # retry after a long sleep
+      if target[:tried] < MAX_TRIAL
+        to_retry.push(target)
       else
-        message =  "arXiv:#{target} cannot be obtained"
-        if tweeted.nil?
-          message += " with unexpected errors."
-        else
-          message += ". No Article found."
-        end
+        # abandon
+        message =  "arXiv:#{target[:name]} cannot be obtained"
+        message += tweeted.nil? ? " with unexpected errors." : ". No Article found."
         announcement = Time.now.strftime("*** [%d %b] #{message} ***")
 
-        ArxivTwitter.send_tweet(get_token(target), announcement)
-        send_mail(message, target)
+        ArxivTwitter.send_tweet(target[:token], announcement)
+        send_mail(message, target[:name])
       end
-    else
-      # No problem. Finish.
-      sleep 60 if @@go_ahead # if some crucial error occurs, misho will stop executing the following categories.
     end
-  end
-end
 
+    # be gentle
+    do_sleep(SHORT_SLEEP_SEC) if targets.size > 0
+  end
+  break if to_retry.empty?
+  do_sleep(LONG_SLEEP_SEC)
+  targets = to_retry
+end

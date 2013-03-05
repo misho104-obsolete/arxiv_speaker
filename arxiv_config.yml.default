@@ -1,34 +1,48 @@
---- 
+---
 
-#### Path to the database file for the BANG script.
+#### E-mail address of Administrator.
+#### If specified, error messages are sent to the address.
+####     (This script uses "mail" command on your server; see the method "send_mail" in arxiv.rb.)
+# :email: xxxxx@xxxxxx.xx
+
+
+#### Path to the database file, where arXiv IDs and corresponding tweet IDs are stored in JSON format.
 #### If unspecified, no database file is generated.
-# :database_for_javascript: /vol1/www/html/arxiv/tw.dat
+#### This script does not take care of the size of the file. Be careful!
+# :database_file: /home/xxxxx/database.dat
 
-#### The Safety Catch. Set true, and the tweets are sent.
+
+#### Safety Catch. Set true, and the tweets are sent.
 # :go_ahead: true
 
-#### Oauth tokens.
-:tokens:
-  :hepph:
-    :ck: XXX
-    :cs: XXX
-    :at: XXX
-    :as: XXX
 
-  :hepth:
-    :ck: XXX
-    :cs: XXX
-    :at: XXX
-    :as: XXX
+#### targetted arXiv categories, and oauth tokens for them.
+#### if :url is not specified, "http://arxiv.org/list/:name/new" is used instead.
+:targets:
+  - :name: hep-ph
+    :url:  http://arxiv.org/list/hep-ph/new
+    :consumer_key:    XXX
+    :consumer_secret: XXX
+    :access_token:    XXX
+    :access_secret:   XXX
 
-  :hepex:
-    :ck: XXX
-    :cs: XXX
-    :at: XXX
-    :as: XXX
+  - :name: hep-th
+    :url:  http://arxiv.org/list/hep-th/new
+    :consumer_key:    XXX
+    :consumer_secret: XXX
+    :access_token:    XXX
+    :access_secret:   XXX
 
-  :heplat:
-    :ck: XXX
-    :cs: XXX
-    :at: XXX
-    :as: XXX
+  - :name: hep-ex
+    :url:  http://arxiv.org/list/hep-ex/new
+    :consumer_key:    XXX
+    :consumer_secret: XXX
+    :access_token:    XXX
+    :access_secret:   XXX
+
+  - :name: hep-lat
+    :url:  http://arxiv.org/list/hep-lat/new
+    :consumer_key:    XXX
+    :consumer_secret: XXX
+    :access_token:    XXX
+    :access_secret:   XXX
