@@ -109,7 +109,7 @@ ArxivTwitter.set_go_ahead(@go_ahead)
 targets.each_with_index do |t, ind| # prepare tokens
   if @go_ahead
     token = OAuth::AccessToken.new(
-              OAuth::Consumer.new(t[:consumer_key], t[:consumer_secret], :site=>"http://api.twitter.com"),
+              OAuth::Consumer.new(t[:consumer_key], t[:consumer_secret], :site=>"https://api.twitter.com"),
               t[:access_token], t[:access_secret])
     unless token
       print "[ERROR] invalid token for category #{t[:name]}."
