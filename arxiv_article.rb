@@ -4,7 +4,7 @@ require 'htmlentities'
 require 'json'
 
 class ArxivArticle
-  @@url_length        = 24
+  @@url_length        = 24 # canonically 22 ( https://dev.twitter.com/rest/reference/get/help/configuration ), but reserve two more for safety.
   @@author_min_length = 30
   @@html_encoder      = HTMLEntities.new
 
@@ -62,8 +62,8 @@ public
   def to_tweet(length = ArxivTwitter::TWITTER_MAX_LENGTH)
     # Twitter shortens the url. So we use @@url_length variable defined above.
     # "[#{m[2]}] #{author} : #{title} http://arxiv.org/abs/#{m[2]}"
-    #     11    1          3         1
-    max_length = length - (@@url_length + 11 + 1 + 3 + 1)
+    #     12    1          3         1
+    max_length = length - (@@url_length + 12 + 1 + 3 + 1)
 
     a = shorten_authors([@@author_min_length, max_length - title.length].max)
     t = shorten_title(max_length - a.length)

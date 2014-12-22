@@ -56,7 +56,7 @@ public
     @articles = []
     rss.items.each do |i|
       # Higgs self-coupling measurements at the LHC. (arXiv:1206.5001v1 [hep-ph])
-      m = Regexp.new('^(.+) \(arXiv:(\d\d\d\d\.\d\d\d\d)v\d+ \[(.+?)\](.*?)\)$').match(i.title)
+      m = Regexp.new('^(.+) \(arXiv:(\d\d\d\d\.\d\d\d\d\d?)v\d+ \[(.+?)\](.*?)\)$').match(i.title)
       next if m.nil? or m[3] != @name or not m[4].empty?
 
       @articles.push ArxivArticle.new(m[1], i.dc_creator, @name, m[2])
@@ -87,7 +87,7 @@ public
       # "Title: Higgs self-coupling measurements at the LHC\n"
       # "Authors:Matthew J. Dolan, \nChristoph Englert, \nMichael Spannowsky"
 
-      number_match = Regexp.new('arXiv:(\d\d\d\d\.\d\d\d\d) ').match(dt)
+      number_match = Regexp.new('arXiv:(\d\d\d\d\.\d\d\d\d\d?) ').match(dt)
       next unless number_match
       number = number_match[1]
 
