@@ -37,5 +37,5 @@ See http://en.misho-web.com/phys/hep_tools.html#arxiv_speaker for details.
   
 
 ###Feedback
- * http://twitter.com/misho
+ * http://twitter.com/sho_iwamoto
 
