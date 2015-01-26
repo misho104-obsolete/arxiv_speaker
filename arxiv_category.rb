@@ -88,7 +88,8 @@ public
       # "Authors:Matthew J. Dolan, \nChristoph Englert, \nMichael Spannowsky"
 
       number_match = Regexp.new('arXiv:(\d\d\d\d\.\d\d\d\d\d?) ').match(dt)
-      next unless number_match
+      crosslist    = Regexp.new('\(cross-list from .*\)').match(dt) # relevant only for 'recent' list
+      next if not(number_match) or crosslist
       number = number_match[1]
 
       begin
@@ -102,6 +103,7 @@ public
 
       @articles.push ArxivArticle.new(title, author, @name, number)
     end
+    @articles.sort!{|a,b| a.number <=> b.number}
   end
 
   def send_tweets(first_announcement = nil)
