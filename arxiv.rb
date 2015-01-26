@@ -57,13 +57,17 @@ def do_sleep(duration)
 end
 
 
-def execute(target)
+def execute(target, local_input_file = nil)
   name  = target[:name]
-  url   = target[:url] || "http://arxiv.org/list/#{name}/new"
+  url   = local_input_file || target[:url] || "http://arxiv.org/list/#{name}/new"
   token = target[:token]
 
   if @go_ahead and not token
-    send_mail("oauth_token for #{name} not found.", name)
+    if local_input_file
+      print "[ERROR] oauth_token for #{name} not found\n"
+    else
+      send_mail("oauth_token for #{name} not found.", name)
+    end
     return nil
   end
 
@@ -73,11 +77,19 @@ def execute(target)
     print "[ERROR] ArxivReadingException! #{str}\n"
     message =  "arXiv:#{name} cannot be obtained."
     message += " Error: #{str}" if str
-    send_mail(message, name)
+    send_mail(message, name) unless local_input_file
     return nil
   end
 
-  first_announcement = Time.now.strftime("*** [%d %b] New submissions for #{name} ***")
+  if local_input_file # needs refactoring...
+    doc = Nokogiri::XML(open(url)) { |conf| conf.noblanks.nonet }
+    ddbbb_match = Regexp.new('\w+, (\d+) (\w+) \d\d\d\d').match(doc.css("h3").first.content)
+    date = "#{ddbbb_match[1]} #{ddbbb_match[2]}"
+    print "[Info] Date is guessed as '#{date}'\n"; sleep 5
+  else
+    date = Time.now.strftime("%d %b")
+  end
+  first_announcement = "*** [#{date}] New submissions for #{name} ***"
 # first_announcement += " [sorry for hep-ex users; this is a test run. today's articles again. ]"
 
   ac.send_tweets(first_announcement) # returns the number of tweeted articles.
@@ -92,6 +104,7 @@ config = YAML.load_file('arxiv_config.yml')
 
 if ARGV.length > 0
   targets = config[:targets].select{ |t| t[:name] == ARGV[0] }
+  local_input_file = ARGV.length > 1 ? ARGV[1] : nil
 else
   targets = config[:targets]
 end
@@ -128,6 +141,13 @@ if false
     ArxivTwitter.send_tweet(target[:token], announcement)
   end
   exit 0
+end
+# ---------------------
+# code for local-input  # needs refactoring
+#
+if local_input_file
+  execute(targets.first, local_input_file)
+  exit
 end
 # ---------------------
 
