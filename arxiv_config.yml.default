@@ -20,28 +20,28 @@
 #### if :url is not specified, "http://arxiv.org/list/:name/new" is used instead.
 :targets:
   - :name: hep-ph
-    :url:  http://arxiv.org/list/hep-ph/new
+    :url:  https://arxiv.org/list/hep-ph/new
     :consumer_key:    XXX
     :consumer_secret: XXX
     :access_token:    XXX
     :access_secret:   XXX
 
   - :name: hep-th
-    :url:  http://arxiv.org/list/hep-th/new
+    :url:  https://arxiv.org/list/hep-th/new
     :consumer_key:    XXX
     :consumer_secret: XXX
     :access_token:    XXX
     :access_secret:   XXX
 
   - :name: hep-ex
-    :url:  http://arxiv.org/list/hep-ex/new
+    :url:  https://arxiv.org/list/hep-ex/new
     :consumer_key:    XXX
     :consumer_secret: XXX
     :access_token:    XXX
     :access_secret:   XXX
 
   - :name: hep-lat
-    :url:  http://arxiv.org/list/hep-lat/new
+    :url:  https://arxiv.org/list/hep-lat/new
     :consumer_key:    XXX
     :consumer_secret: XXX
     :access_token:    XXX
