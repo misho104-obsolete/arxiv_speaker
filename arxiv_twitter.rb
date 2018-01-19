@@ -2,7 +2,7 @@ class TweetingException < Exception; end
 
 class ArxivTwitter
   TWITTER_UPDATE_API = 'https://api.twitter.com/1.1/statuses/update.json'
-  TWITTER_MAX_LENGTH = 140
+  TWITTER_MAX_LENGTH = 280
   MAX_TRIES          = 4
 
   @@go_ahead = false
