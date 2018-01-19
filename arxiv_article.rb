@@ -4,8 +4,9 @@ require 'htmlentities'
 require 'json'
 
 class ArxivArticle
-  @@url_length        = 24 # canonically 22 ( https://dev.twitter.com/rest/reference/get/help/configuration ), but reserve two more for safety.
-  @@author_min_length = 30
+  # TODO: get url_length from API : https://api.twitter.com/1.1/help/configuration.json
+  @@url_length        = 28 # canonically 24 ( https://dev.twitter.com/rest/reference/get/help/configuration ), but reserve four more for safety.
+  @@author_min_length = 60
   @@html_encoder      = HTMLEntities.new
 
   attr_accessor :title, :author, :category, :number, :tweet_id
