@@ -62,14 +62,14 @@ protected
 public
   def to_tweet(length = ArxivTwitter::TWITTER_MAX_LENGTH)
     # Twitter shortens the url. So we use @@url_length variable defined above.
-    # "[#{m[2]}] #{author} : #{title} http://arxiv.org/abs/#{m[2]}"
+    # "[#{m[2]}] #{author} : #{title} https://arxiv.org/abs/#{m[2]}"
     #     12    1          3         1
     max_length = length - (@@url_length + 12 + 1 + 3 + 1)
 
     a = shorten_authors([@@author_min_length, max_length - title.length].max)
     t = shorten_title(max_length - a.length)
 
-    "[#{@number}] #{a} : #{t} http://arxiv.org/abs/#{@number}"
+    "[#{@number}] #{a} : #{t} https://arxiv.org/abs/#{@number}"
   end
 
   def to_json
