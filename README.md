@@ -1,3 +1,5 @@
+** This package (and the bots) is discontinued since Twitter suddenly banned the accounts in March 2019.**
+
 arxiv_speaker
 =============
 Source codes for arXiv@Twitter bots, which daily tweet the new submissions on arXiv.
@@ -6,16 +8,16 @@ Written for Ruby1.9 + RubyGems.
 See http://en.misho-web.com/phys/hep_tools.html#arxiv_speaker for details.
 
 
-###Example
+### Example
  * http://twitter.com/hep_ph
  * http://twitter.com/hep_th
  * http://twitter.com/hep_ex
  * http://twitter.com/hep_lat
 
-###Requirement
+### Requirement
  Ruby 1.9+ and gems (htmlentities, nokogiri, oauth)
 
-###Installation
+### Installation
   First try with the default setting, i.e., rename "arxiv_config.yml.default" to "arxiv_config.yml" and execute "arxiv.rb".
   Then perhaps the "new" articles on arXiv hep-ph, hep-th, hep-ex, and hep-lat are displayed on terminal.
 
@@ -36,6 +38,6 @@ See http://en.misho-web.com/phys/hep_tools.html#arxiv_speaker for details.
 
   
 
-###Feedback
+### Feedback
  * http://twitter.com/sho_iwamoto
 
