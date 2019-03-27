@@ -1,4 +1,4 @@
-** This package (and the bots) is discontinued since Twitter suddenly banned the accounts in March 2019.**
+**This package (and the bots) is discontinued since Twitter suddenly banned the accounts in March 2019.**
 
 arxiv_speaker
 =============
